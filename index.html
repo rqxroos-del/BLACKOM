@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RQX for Arif</title>
+
+    <link rel="preconnect" href="" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+        rel="stylesheet" />
+
+    <style>
+        /* ================================================================
+       DESIGN TOKENS
+       Change these variables -> every element updates automatically.
+       ================================================================ */
+        :root {
+            /* Palette */
+            --clr-page: #0f0814;
+            --clr-card: #1a0f24;
+            --clr-card-hover: #1e1229;
+            --clr-img-well: #110920;
+            --clr-accent: #c084fc;
+            --clr-accent-deep: #9333ea;
+            --clr-glow: rgba(192, 132, 252, 0.28);
+            --clr-glow-strong: rgba(192, 132, 252, 0.60);
+            --clr-text-hi: #f0e6ff;
+            --clr-text-mid: #a78dc0;
+            --clr-text-lo: #604f78;
+            --clr-border-idle: rgba(192, 132, 252, 0.10);
+
+            /* Spacing */
+            --sp-card-pad-x: 1.5rem;
+            --sp-card-pad-y: 1.4rem;
+            --sp-img-h: 172px;
+            /* product image well height */
+
+            /* Radii */
+            --r-card: 22px;
+            --r-body: 20px;
+            /* = r-card minus border width */
+            --r-btn: 12px;
+            --r-pill: 100px;
+
+            /* Motion */
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --t-fast: 0.32s;
+            --t-mid: 0.52s;
+            --t-slow: 0.78s;
+        }
+
+        /* ================================================================
+       RESET
+       ================================================================ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        button {
+            font: inherit;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* ================================================================
+       PAGE SCAFFOLD  (demo only - not part of the component)
+       ================================================================ */
+        body {
+            background:
+                linear-gradient(rgba(15, 8, 20, .65), rgba(15, 8, 20, .65)),
+                url("background.jpg") center / cover fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3rem;
+            padding: 5rem 2rem;
+            font-family: 'DM Sans', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .demo-eyebrow {
+            font-size: .68rem;
+            font-weight: 500;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--clr-accent);
+            opacity: .5;
+            text-align: center;
+            margin-bottom: .5rem;
+        }
+
+        .demo-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+            font-weight: 600;
+            letter-spacing: -.025em;
+            color: var(--clr-text-hi);
+            text-align: center;
+        }
+
+        /* ================================================================
+       CARD GRID  (demo scaffold)
+       ================================================================ */
+        .card-grid {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1100px;
+            list-style: none;
+        }
+
+        /* ================================================================
+       CARD WRAPPER
+       Width: 280–315 px - drops into any CSS Grid or Flex column.
+       ================================================================ */
+        .card {
+            position: relative;
+            width: clamp(280px, 100%, 315px);
+
+            /* 2 px padding creates the visible border gap */
+            padding: 2px;
+            border-radius: var(--r-card);
+
+            /* Make wrapper a flex column so body fills full height */
+            display: flex;
+            /* <- THE KEY FIX                        */
+            flex-direction: column;
+            /* <- body stretches to full height       */
+
+            isolation: isolate;
+
+            box-shadow:
+                0 2px 16px rgba(0, 0, 0, .55),
+                0 0 0 1px var(--clr-border-idle);
+
+            transition:
+                transform var(--t-mid) var(--ease),
+                box-shadow var(--t-mid) var(--ease);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow:
+                0 32px 64px rgba(0, 0, 0, .72),
+                0 0 0 1px transparent;
+            /* hand off to ::before gradient border */
+        }
+
+        /* -- Neon conic border - fades in on hover ------------------- */
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1.5px;
+            background: conic-gradient(from 190deg at 50% 50%,
+                    transparent 0deg,
+                    var(--clr-accent-deep) 65deg,
+                    var(--clr-accent) 125deg,
+                    #e879f9 185deg,
+                    var(--clr-accent) 245deg,
+                    var(--clr-accent-deep) 305deg,
+                    transparent 360deg);
+            /* Mask trick: paint only the ring, not the fill */
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity var(--t-mid) var(--ease);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        /* -- Ambient blurred halo - fades in on hover --------------- */
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: -16px;
+            border-radius: calc(var(--r-card) + 10px);
+            background: radial-gradient(ellipse 65% 45% at 50% 105%,
+                    var(--clr-glow) 0%, transparent 70%);
+            opacity: 0;
+            filter: blur(22px);
+            pointer-events: none;
+            z-index: -1;
+            transition: opacity var(--t-mid) var(--ease);
+        }
+
+        .card:hover::after {
+            opacity: 1;
+        }
+
+        /* ================================================================
+       CARD BODY
+       flex: 1 -> fills the full height handed down from .card.
+       display: flex + flex-direction: column -> lets .card__content
+       grow and pins .card__footer to the bottom.
+       ================================================================ */
+        .card__body {
+            flex: 1;
+            /* fills wrapper's full stretched height */
+            display: flex;
+            flex-direction: column;
+            background: var(--clr-card);
+            border-radius: var(--r-body);
+            overflow: hidden;
+            position: relative;
+            transition: background var(--t-mid) var(--ease);
+        }
+
+        .card:hover .card__body {
+            background: var(--clr-card-hover);
+        }
+
+        /* Decorative background shapes - do not affect layout */
+        .card__body::before {
+            /* soft orb - top-right */
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle,
+                    rgba(192, 132, 252, .10) 0%, transparent 70%);
+            filter: blur(22px);
+            transform: translate(0, 0) scale(1);
+            transition: transform var(--t-slow) var(--ease);
+            pointer-events: none;
+        }
+
+        .card__body::after {
+            /* diamond shard - bottom-left */
+            content: '';
+            position: absolute;
+            bottom: 90px;
+            left: -22px;
+            width: 88px;
+            height: 88px;
+            background: linear-gradient(135deg,
+                    rgba(192, 132, 252, .07) 0%, transparent 60%);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            transform: rotate(0deg);
+            transition: transform var(--t-slow) var(--ease);
+            pointer-events: none;
+        }
+
+        .card:hover .card__body::before {
+            transform: translate(-8px, 8px) scale(1.18);
+        }
+
+        .card:hover .card__body::after {
+            transform: rotate(18deg) translate(5px, -5px);
+        }
+
+        /* ================================================================
+       IMAGE WELL
+       Replace the placeholder <svg> with <img> in production.
+       ================================================================ */
+        .card__img-wrap {
+            position: relative;
+            width: 100%;
+            height: var(--sp-img-h);
+            flex-shrink: 0;
+            /* never collapses */
+            background: var(--clr-img-well);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Purple bloom inside image */
+        .card__img-wrap::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 75% 70% at 50% 35%,
+                    rgba(192, 132, 252, .13) 0%, transparent 70%);
+            transition: opacity var(--t-mid) var(--ease);
+        }
+
+        .card:hover .card__img-wrap::before {
+            opacity: 1.4;
+        }
+
+        /* Gradient bleed from image into card body */
+        .card__img-wrap::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to top, var(--clr-card), transparent);
+            transition: background var(--t-mid) var(--ease);
+        }
+
+        .card:hover .card__img-wrap::after {
+            background: linear-gradient(to top, var(--clr-card-hover), transparent);
+        }
+
+        /* Placeholder SVG icon (swap for <img> in production) */
+        .card__img-icon {
+            position: relative;
+            z-index: 1;
+            width: 56px;
+            height: 56px;
+            color: var(--clr-accent);
+            opacity: .40;
+            transition:
+                opacity var(--t-mid) var(--ease),
+                transform var(--t-mid) var(--ease),
+                filter var(--t-mid) var(--ease);
+        }
+
+        .card:hover .card__img-icon {
+            opacity: .80;
+            transform: scale(1.08);
+            filter: drop-shadow(0 0 10px var(--clr-glow-strong));
+        }
+
+        /* Badges - category (left) + deal type (right) */
+        .card__badges {
+            position: absolute;
+            top: 11px;
+            left: 11px;
+            right: 11px;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .badge {
+            font-size: .60rem;
+            font-weight: 500;
+            letter-spacing: .10em;
+            text-transform: uppercase;
+            padding: 3px 9px;
+            border-radius: var(--r-pill);
+        }
+
+        .badge--cat {
+            color: var(--clr-text-mid);
+            background: rgba(15, 8, 20, .70);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(192, 132, 252, .12);
+        }
+
+        .badge--sale {
+            color: #fde68a;
+            background: rgba(234, 179, 8, .13);
+            border: 1px solid rgba(234, 179, 8, .26);
+        }
+
+        .badge--new {
+            color: #86efac;
+            background: rgba(74, 222, 128, .11);
+            border: 1px solid rgba(74, 222, 128, .24);
+        }
+
+        .badge--limited {
+            color: #fca5a5;
+            background: rgba(248, 113, 113, .11);
+            border: 1px solid rgba(248, 113, 113, .24);
+        }
+
+        /* ================================================================
+       CARD CONTENT  ->  flex: 1 pushes the footer to the bottom.
+       ================================================================ */
+        .card__content {
+            flex: 1;
+            /* grows -> footer stays pinned */
+            display: flex;
+            flex-direction: column;
+            padding: 1.15rem var(--sp-card-pad-x) 0;
+            gap: .5rem;
+        }
+
+        /* Product name */
+        .card__name {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: -.015em;
+            background: linear-gradient(135deg, #f0e6ff 0%, var(--clr-accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: filter var(--t-fast) ease;
+        }
+
+        .card:hover .card__name {
+            filter: brightness(1.12);
+        }
+
+        /* Star rating */
+        .card__rating {
+            display: flex;
+            align-items: center;
+            gap: .35rem;
+        }
+
+        .stars {
+            display: flex;
+            gap: 2px;
+        }
+
+        .star {
+            width: 12px;
+            height: 12px;
+            color: #f59e0b;
+        }
+
+        .star--empty {
+            color: var(--clr-text-lo);
+        }
+
+        .card__review-count {
+            font-size: .72rem;
+            color: var(--clr-text-lo);
+            font-weight: 400;
+        }
+
+        /* Description - flex:1 keeps price row anchored low */
+        .card__desc {
+            flex: 1;
+            font-size: .86rem;
+            font-weight: 300;
+            line-height: 1.65;
+            color: var(--clr-text-mid);
+            transition: color var(--t-fast) ease;
+        }
+
+        .card:hover .card__desc {
+            color: #baa8d6;
+        }
+
+        /* Price row */
+        .card__price {
+            display: flex;
+            align-items: baseline;
+            gap: .45rem;
+            margin-top: .4rem;
+        }
+
+        .price-now {
+            font-size: 1.45rem;
+            font-weight: 600;
+            color: var(--clr-text-hi);
+        }
+
+        .price-was {
+            font-size: .84rem;
+            font-weight: 300;
+            color: var(--clr-text-lo);
+            text-decoration: line-through;
+        }
+
+        .price-off {
+            font-size: .68rem;
+            font-weight: 500;
+            letter-spacing: .04em;
+            color: #fde68a;
+            background: rgba(234, 179, 8, .12);
+            border: 1px solid rgba(234, 179, 8, .22);
+            padding: 2px 7px;
+            border-radius: var(--r-pill);
+        }
+
+        /* ================================================================
+       CARD FOOTER - pinned to the bottom (flex-shrink: 0)
+       ================================================================ */
+        .card__footer {
+            flex-shrink: 0;
+            /* never shrinks away */
+            display: flex;
+            flex-direction: column;
+            gap: .9rem;
+            padding: 1rem var(--sp-card-pad-x) var(--sp-card-pad-y);
+        }
+
+        /* Thin accent divider */
+        .card__rule {
+            height: 1px;
+            background: linear-gradient(90deg,
+                    rgba(192, 132, 252, .16), rgba(192, 132, 252, .04) 65%, transparent);
+            transition: background var(--t-fast) ease;
+        }
+
+        .card:hover .card__rule {
+            background: linear-gradient(90deg,
+                    rgba(192, 132, 252, .38), rgba(192, 132, 252, .06) 65%, transparent);
+        }
+
+        /* Add-to-cart CTA button */
+        .card__btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            width: 100%;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .875rem;
+            font-weight: 500;
+            color: var(--clr-accent);
+            background: rgba(192, 132, 252, .08);
+            border: 1px solid rgba(192, 132, 252, .20);
+            padding: .68rem 1.25rem;
+            border-radius: var(--r-btn);
+            position: relative;
+            overflow: hidden;
+            transition:
+                background var(--t-fast) var(--ease),
+                border-color var(--t-fast) var(--ease),
+                color var(--t-fast) var(--ease),
+                box-shadow var(--t-fast) var(--ease),
+                gap var(--t-fast) var(--ease);
+        }
+
+        /* Shimmer sweep on hover */
+        .card__btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -120%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                    transparent, rgba(255, 255, 255, .06), transparent);
+            transition: left .55s var(--ease);
+        }
+
+        .card__btn:hover::before {
+            left: 170%;
+        }
+
+        .card__btn:hover {
+            background: rgba(192, 132, 252, .18);
+            border-color: rgba(192, 132, 252, .55);
+            color: #e9d5ff;
+            box-shadow: 0 0 22px rgba(192, 132, 252, .20);
+            gap: .7rem;
+        }
+
+        .card__btn:active {
+            transform: scale(.98);
+        }
+
+        .btn-icon {
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+            transition: transform var(--t-fast) var(--ease);
+        }
+
+        .card__btn:hover .btn-icon {
+            transform: scale(1.18);
+        }
+
+        /* Trust signals row - identical across all cards */
+        .card__trust {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: .28rem;
+            font-size: .66rem;
+            font-weight: 400;
+            color: var(--clr-text-lo);
+            letter-spacing: .02em;
+            transition: color var(--t-fast) ease;
+        }
+
+        .card:hover .trust-item {
+            color: var(--clr-text-mid);
+        }
+
+        .trust-icon {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+            color: var(--clr-accent);
+            opacity: .50;
+        }
+
+        .trust-sep {
+            width: 1px;
+            height: 12px;
+            background: rgba(192, 132, 252, .12);
+        }
+
+        /* ================================================================
+       aksesbilitas HELPER
+       ================================================================ */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+
+        /* ================================================================
+       RESPONSIVE - single-column on narrow viewports
+       ================================================================ */
+        @media (max-width: 420px) {
+            .card {
+                width: 100%;
+            }
+        }
+
+        /* WhatsApp Button */
+        .wa-button {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 50px;
+            color: white;
+            background: #25D366;
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 25px rgba(0,0,0,.35);
+            transition: .3s ease;
+        }
+        .wa-button:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 12px 35px rgba(37,211,102,.4);
+        }
+        .wa-icon { width: 20px; height: 20px; }
+    </style>
+</head>
+
+<body>
+
+    <!-- Demo heading - remove this in production -->
+    <header>
+        <p class="demo-eyebrow">Arif acedmy</p>
+        <h1 class="demo-title">Product RPL</h1>
+        <h1 class="demo-title">by for M.Arif Rifai</h1> 
+    </header>
+
+    <!--
+    ================================================================
+    CARD GRID
+    align-items: stretch on this container + display: flex on .card
+    = perfect equal-height cards.
+    ================================================================
+  -->
+    <ul class="card-grid" role="list" aria-label="Featured products">
+
+        <!-- ============================================================
+         CARD 1 - Wireless Keyboard
+         ============================================================ -->
+        <li class="card" role="listitem">
+            <article class="card__body" aria-label="Apex Pro TKL Wireless product">
+
+                <!-- Image well -->
+                <div class="card__img-wrap">
+                    <div class="card__badges">
+                        <span class="badge badge--cat">Keyboards</span>
+                        <span class="badge badge--sale">–25%</span>
+                    </div>
+                    <!--
+            PRODUCTION: replace this <svg> with:
+            <img src="/images/X.png"/>
+          -->
+                    <svg class="card__img-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="2" y="6" width="20" height="13" rx="2" />
+                        <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01
+                     M6 14h.01M10 14h.01M14 14h.01M18 14h.01
+                     M8 6V4M16 6V4" />
+                    </svg>
+                </div>
+
+                <!-- Scrolling content area (grows) -->
+                <div class="card__content">
+                    <a href="#">
+                        <h2 class="card__name">Wireless Keyboard</h2>
+                    </a>
+
+                    <div class="card__rating" aria-label="4.8 out of 5 - 2,340 reviews">
+                        <div class="stars" aria-hidden="true">
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star star--empty" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                        </div>
+                        <span class="card__review-count">4.8 (2,340)</span>
+                    </div>
+
+                    <p class="card__desc">
+                        Keyboard ini sudah memiliki teknologi wireles tanpa menggunakan kabel yg panjang yg kuno itu
+                    </p>
+
+                    <div class="card__price" aria-label="Price: $149, was $199">
+                        <span class="price-now">$1409</span>
+                        <span class="price-was">$1909</span>
+                        <span class="price-off">Save $150</span>
+                    </div>
+                </div>
+
+                <!-- Footer (always pinned to bottom) -->
+                <div class="card__footer">
+                    <div class="card__rule" aria-hidden="true"></div>
+
+                    <a href="#" class="card__btn" aria-label="Add Apex Pro TKL Wireless to cart">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="9" cy="21" r="1" />
+                            <circle cx="20" cy="21" r="1" />
+                            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+                        </svg>
+                        BUY to SAVE
+                    </a>
+
+                    <!--
+            Trust row - same markup on every card.
+          -->
+                    <div class="card__trust" aria-label="Shipping and return policy">
+                        <div class="trust-item">
+                            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="1" y="3" width="15" height="13" rx="1" />
+                                <path d="M16 8h4l3 5v3h-7V8z" />
+                                <circle cx="5.5" cy="18.5" r="2.5" />
+                                <circle cx="18.5" cy="18.5" r="2.5" />
+                            </svg>
+                            Free Shipping
+                        </div>
+                        <div class="trust-sep" aria-hidden="true"></div>
+                        <div class="trust-item">
+                            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="1 4 1 10 7 10" />
+                                <polyline points="23 20 23 14 17 14" />
+                                <path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15" />
+                            </svg>
+                            30-Day Returns
+                        </div>
+                        <div class="trust-sep" aria-hidden="true"></div>
+                        <div class="trust-item">
+                            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            In Stock
+                        </div>
+                    </div>
+                </div>
+
+            </article>
+        </li>
+
+
+        <!-- ============================================================
+         CARD 2 - Wireless Headphones
+         ============================================================ -->
+        <li class="card" role="listitem">
+            <article class="card__body" aria-label="Void Ultra X Wireless product">
+
+                <div class="card__img-wrap">
+                    <div class="card__badges">
+                        <span class="badge badge--cat">Audio</span>
+                        <span class="badge badge--new">New</span>
+                    </div>
+                    <svg class="card__img-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 18v-6a9 9 0 0118 0v6" />
+                        <path d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3v5z" />
+                        <path d="M3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3v5z" />
+                    </svg>
+                </div>
+
+                <div class="card__content">
+                    <a href="#">
+                        <h2 class="card__name">Wireless Headset</h2>
+                    </a>
+
+                    <div class="card__rating" aria-label="4.6 out of 5 - 891 reviews">
+                        <div class="stars" aria-hidden="true">
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star star--empty" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                        </div>
+                        <span class="card__review-count">4.6 (891)</span>
+                    </div>
+
+                    <p class="card__desc">
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Rem consequuntur officiis nulla sed
+                        ipsa iure natus
+                    </p>
+
+                    <div class="card__price" aria-label="Price: $279, was $329">
+                        <span class="price-now">$279</span>
+                        <span class="price-was">$329</span>
+                        <span class="price-off">Save $50</span>
+                    </div>
+                </div>
+
+                <div class="card__footer">
+                    <div class="card__rule" aria-hidden="true"></div>
+
+                    <a href="#" class="card__btn" aria-label="Add Void Ultra X to cart">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="9" cy="21" r="1" />
+                            <circle cx="20" cy="21" r="1" />
+                            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+                        </svg>
+                        Add to Cart
+                    </a>
+
+                    <div class="card__trust" aria-label="Shipping and return policy">
+                        <div class="trust-item">
+                            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="1" y="3" width="15" height="13" rx="1" />
+                                <path d="M16 8h4l3 5v3h-7V8z" />
+                                <circle cx="5.5" cy="18.5" r="2.5" />
+                                <circle cx="18.5" cy="18.5" r="2.5" />
+                            </svg>
+                            Free Shipping
+                        </div>
+                        <div class="trust-sep" aria-hidden="true"></div>
+                        <div class="trust-item">
+                            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="1 4 1 10 7 10" />
+                                <polyline points="23 20 23 14 17 14" />
+                                <path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15" />
+                            </svg>
+                            30-Day Returns
+                        </div>
+                        <div class="trust-sep" aria-hidden="true"></div>
+                        <div class="trust-item">
+                            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            In Stock
+                        </div>
+                    </div>
+                </div>
+
+            </article>
+        </li>
+
+
+        <!-- ============================================================
+         CARD 3 - Monitor asus REDGIN
+         ============================================================ -->
+        <li class="card" role="listitem">
+            <article class="card__body" aria-label="Nova 27 QHD 240 Hz monitor product">
+
+                <div class="card__img-wrap">
+                    <div class="card__badges">
+                        <span class="badge badge--cat">Displays</span>
+                        <span class="badge badge--limited">limited</span>
+                    </div>
+                    <svg class="card__img-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                        <line x1="8" y1="21" x2="16" y2="21" />
+                        <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
+                </div>
+
+                <div class="card__content">
+                    <a href="#">
+                        <h2 class="card__name">Gaming Monitor RQX REDGIN</h2>
+                    </a>
+
+                    <div class="card__rating" aria-label="4.9 out of 5 - 512 reviews">
+                        <div class="stars" aria-hidden="true">
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                            <svg class="star" viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                        </div>
+                        <span class="card__review-count">4.9 (512)</span>
+                    </div>
+
+                    <p class="card__desc">
+                        Monitor RQX REDGIN dengan kualitas tinggi layar besar 24 inc dan layar sudah 300hz dengan ini pengalaman main lebih nyaman
+                    </p>
+
+                    <!-- No sale: just the current price - omit .price-was and .price-off -->
+                    <div class="card__price" aria-label="Price: $549">
+                        <span class="price-now">$549</span>
+                    </div>
+                </div>
+
+                <div class="card__footer">
+                    <div class="card__rule" aria-hidden="true"></div>
+
+                    <a href="#" class="card__btn" aria-label="Add Nova 27 QHD to cart">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="9" cy="21" r="1" />
+                            <circle cx="20" cy="21" r="1" />
+                            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+                        </svg>
+                        Add to Cart
+                    </a>
+
+                    <div class="card__trust" aria-label="Shipping and return policy">
+                        <div class="trust-item">
+                            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="1" y="3" width="15" height="13" rx="1" />
+                                <path d="M16 8h4l3 5v3h-7V8z" />
+                                <circle cx="5.5" cy="18.5" r="2.5" />
+                                <circle cx="18.5" cy="18.5" r="2.5" />
+                            </svg>
+                            Free Shipping
+                        </div>
+                        <div class="trust-sep" aria-hidden="true"></div>
+                        <div class="trust-item">
+                            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="1 4 1 10 7 10" />
+                                <polyline points="23 20 23 14 17 14" />
+                                <path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15" />
+                            </svg>
+                            30-Day Returns
+                        </div>
+                        <div class="trust-sep" aria-hidden="true"></div>
+                        <div class="trust-item">
+                            <svg class="trust-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            In Stock
+                        </div>
+                    </div>
+                </div>
+
+            </article>
+        </li>
+
+    </ul>
+
+
+    <a href="https://wa.me/6285692301209" class="wa-button" target="_blank" rel="noopener" aria-label="Hubungi saya melalui WhatsApp">
+        <svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2a10 10 0 0 0-8.66 15l-1.1 4.02 4.1-1.07A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.13l-.24-.14-2.43.64.65-2.37-.16-.25A8 8 0 1 1 12 20zm4.42-5.92c-.24-.12-1.42-.7-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.41-.54-.42h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.68 2.56 4.07 3.59.57.25 1.02.4 1.37.51.58.18 1.1.15 1.52.09.46-.07 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28z"/>
+        </svg>
+        WhatsApp
+    </a>  
+
+<iframe 
+  src="https://drive.google.com/file/d/1B73sC-SEbmklYLpZWF15R-iOczxJtuvw/preview"
+  width="100%"
+  height="700px"
+  style="border: none;">
+</iframe>
+  
+     <header>
+        <h1 class="demo-eyebrow">pembuat web M.Arif Rifai Devoloper server<h1>
+        <h1 class="demo-eyebrow">kelas x RPL 2 HEBAT<h1>
+        <p1 class="demo-eyebrow">©2026 hak cipta RQX</p1>
+     <header>
+
+</body>
+
+</html>
